@@ -1,0 +1,1 @@
+web: gunicorn Sistema_notas.wsgi --log-file -
