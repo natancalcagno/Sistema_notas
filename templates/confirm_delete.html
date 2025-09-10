@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3>Confirmar Exclusão</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Você tem certeza que deseja excluir "{{ object }}"?</p>
+                    <p class="text-muted text-center"><small>Essa ação é irreversível.</small></p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger me-2">Excluir</button>
+                        </form>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="cancel" value="1">
+                            <button type="submit" class="btn btn-secondary">Cancelar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

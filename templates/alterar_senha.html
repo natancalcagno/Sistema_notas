@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">Alterar Senha</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.old_password.id_for_label }}" class="form-label">Senha Atual</label>
+                            {{ form.old_password }}
+                            {% if form.old_password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.old_password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.new_password1.id_for_label }}" class="form-label">Nova Senha</label>
+                            {{ form.new_password1 }}
+                            {% if form.new_password1.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.new_password1.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">
+                                A senha deve conter:
+                                <ul class="mb-0">
+                                    <li>Pelo menos 8 caracteres</li>
+                                    <li>Pelo menos uma letra maiúscula</li>
+                                    <li>Pelo menos uma letra minúscula</li>
+                                    <li>Pelo menos um número</li>
+                                    <li>Pelo menos um caractere especial</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.new_password2.id_for_label }}" class="form-label">Confirmar Nova Senha</label>
+                            {{ form.new_password2 }}
+                            {% if form.new_password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.new_password2.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

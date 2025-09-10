@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Relatórios</h2>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="contrato" class="form-label">Contrato</label>
+                    <select name="contrato" id="contrato" class="form-select">
+                        <option value="">Todos</option>
+                        {% for contrato in contratos %}
+                            <option value="{{ contrato.id }}" {% if request.GET.contrato|stringformat:"s" == contrato.id|stringformat:"s" %}selected{% endif %}>
+                                {{ contrato.numero_contrato }} - {{ contrato.empresa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ request.GET.data_inicio }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ request.GET.data_fim }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Notas -->
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <h5 class="card-title">Notas Encontradas</h5>
+                <!-- Botões de Exportação -->
+                <div class="btn-group">
+                    <form method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="export_type" value="pdf">
+                        <button type="submit" class="btn btn-secondary">Exportar PDF</button>
+                    </form>
+                    <form method="POST" style="display: inline; margin-left: 5px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="export_type" value="excel">
+                        <button type="submit" class="btn btn-success">Exportar Excel</button>
+                    </form>
+                    <form method="POST" style="display: inline; margin-left: 5px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="export_type" value="word">
+                        <button type="submit" class="btn btn-primary">Exportar Word</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Data Entrada</th>
+                            <th>Empresa</th>
+                            <th>Número da Nota</th>
+                            <th>Valor</th>
+                            <th>Contrato</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nota in notas %}
+                        <tr>
+                            <td>{{ nota.data_entrada }}</td>
+                            <td>{{ nota.empresa }}</td>
+                            <td>{{ nota.numero }}</td>
+                            <td>R$ {{ nota.valor }}</td>
+                            <td>{{ nota.contrato.numero|default:"-" }}</td>
+                            <td>
+                                {% if nota.data_saida %}
+                                    <span class="badge bg-success">Processada</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pendente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhuma nota encontrada.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if is_paginated %}
+            <nav aria-label="Navegação de página">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

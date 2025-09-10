@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
+        
+        <!-- Exibe mensagens de erro globais do formulário -->
+        {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-4" role="alert">
+                <strong class="font-bold">Erro:</strong>
+                <span class="block sm:inline">Credenciais inválidas. Por favor, tente novamente.</span>
+                <!-- Loop para exibir erros específicos de campos -->
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p class="text-sm mt-1">{{ field.label }}: {{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="id_username" class="block text-gray-700 font-medium mb-2">Usuário</label>
+                <input type="text" name="username" id="id_username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
+            </div>
+            <div class="mb-6">
+                <label for="id_password" class="block text-gray-700 font-medium mb-2">Senha</label>
+                <input type="password" name="password" id="id_password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors mb-4">
+                Entrar
+            </button>
+            
+            <div class="text-center">
+                <a href="{% url 'esqueci_senha' %}" class="text-blue-600 hover:text-blue-800 text-sm">
+                    Esqueci minha senha
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

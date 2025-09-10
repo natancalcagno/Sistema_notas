@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Redefinição de Senha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            border-radius: 0 0 5px 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 20px 0;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Redefinição de Senha</h2>
+        </div>
+        <div class="content">
+            <p>Olá {{ user.first_name }},</p>
+            
+            <p>Você solicitou a redefinição de sua senha no Sistema de Notas.</p>
+            
+            <p>Para redefinir sua senha, clique no botão abaixo:</p>
+            
+            <p style="text-align: center;">
+                <a href="{{ reset_url }}" class="button">Redefinir Minha Senha</a>
+            </p>
+            
+            <p>Se o botão não funcionar, você também pode copiar e colar o seguinte link em seu navegador:</p>
+            <p style="word-break: break-all;">
+                {{ reset_url }}
+            </p>
+            
+            <p>
+                <strong>Importante:</strong>
+                <ul>
+                    <li>Este link é válido por {{ valid_hours }} horas.</li>
+                    <li>Por segurança, use o link apenas uma vez.</li>
+                    <li>Se você não solicitou esta redefinição de senha, por favor ignore este email.</li>
+                </ul>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Atenciosamente,<br>Equipe do Sistema de Notas</p>
+            <p>Este é um email automático. Por favor, não responda.</p>
+        </div>
+    </div>
+</body>
+</html>
