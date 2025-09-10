@@ -1,0 +1,8 @@
+Django==5.2.6
+psycopg2-binary==2.9.9  # Para PostgreSQL
+python-dotenv==1.0.0    # Para carregar variáveis de ambiente
+whitenoise==6.6.0       # Para servir arquivos estáticos
+gunicorn==21.2.0        # Servidor WSGI para produção
+docx==0.2.4             # Para geração de documentos Word
+python-decouple==3.8    # Para configurações seguras
+dj-database-url==2.1.0  # Para configuração de banco de dados via URL

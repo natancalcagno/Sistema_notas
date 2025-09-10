@@ -1,0 +1,13 @@
+@echo off
+echo Iniciando processo de deploy...
+
+echo Coletando arquivos estáticos...
+python manage.py collectstatic --noinput --settings=Sistema_notas.settings_prod
+
+echo Aplicando migrações...
+python manage.py migrate --settings=Sistema_notas.settings_prod
+
+echo Compilando mensagens...
+python manage.py compilemessages --settings=Sistema_notas.settings_prod
+
+echo Processo de deploy concluído com sucesso!
