@@ -57,7 +57,7 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Redefinir Senha</button>
-                            <a href="{% url 'login' %}" class="btn btn-secondary">Voltar para Login</a>
+                            <a href="{% url 'core:login' %}" class="btn btn-secondary">Voltar para Login</a>
                         </div>
                     </form>
                     {% else %}
@@ -66,7 +66,7 @@
                         Por favor, solicite um novo link de recuperação de senha.
                     </div>
                     <div class="d-grid">
-                        <a href="{% url 'esqueci_senha' %}" class="btn btn-primary">Solicitar Novo Link</a>
+                        <a href="{% url 'core:esqueci_senha' %}" class="btn btn-primary">Solicitar Novo Link</a>
                     </div>
                     {% endif %}
                 </div>

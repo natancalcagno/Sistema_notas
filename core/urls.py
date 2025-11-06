@@ -39,9 +39,12 @@ from .views import (
     ContratoListView, ContratoCreateView, ContratoUpdateView, ContratoDeleteView,
     NotaListView, NotaCreateView, NotaUpdateView, NotaDeleteView,
     RelatoriosView, GerarProtocoloView,
+    ProtocoloPreviewView,
     UsuarioListView, UsuarioCreateView, UsuarioUpdateView,
     AlterarSenhaView, EsqueciSenhaView, RedefinirSenhaView
 )
+
+app_name = 'core'
 
 urlpatterns = [
     # URLs de Autenticação
@@ -66,6 +69,7 @@ urlpatterns = [
     # URLs de Relatórios
     path('relatorios/', RelatoriosView.as_view(), name='relatorios'),
     path('gerar-protocolo/', GerarProtocoloView.as_view(), name='gerar_protocolo'),
+    path('gerar-protocolo-preview/', ProtocoloPreviewView.as_view(), name='protocolo_preview'),
     
     # URLs de Usuários
     path('usuarios/', UsuarioListView.as_view(), name='lista_usuarios'),

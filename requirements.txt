@@ -1,8 +1,36 @@
+# Django e dependências principais
 Django==5.2.6
 psycopg2-binary==2.9.9  # Para PostgreSQL
 python-dotenv==1.0.0    # Para carregar variáveis de ambiente
 whitenoise==6.6.0       # Para servir arquivos estáticos
 gunicorn==21.2.0        # Servidor WSGI para produção
-docx==0.2.4             # Para geração de documentos Word
 python-decouple==3.8    # Para configurações seguras
 dj-database-url==2.1.0  # Para configuração de banco de dados via URL
+
+# Django REST Framework
+djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.2.0
+django-filter>=23.2
+django-cors-headers>=4.2.0
+
+# Utilitários para documentos e relatórios
+docx==0.2.4             # Para geração de documentos Word
+Pillow>=10.0.0          # Para manipulação de imagens
+openpyxl>=3.1.0         # Para exportação Excel
+reportlab>=4.0.0        # Para geração de PDF
+
+# Desenvolvimento e testes
+pytest>=7.4.0
+pytest-django>=4.5.0
+pytest-cov>=4.1.0
+factory-boy>=3.3.0
+faker>=19.0.0
+
+# Monitoramento e logs
+sentry-sdk[django]>=1.32.0
+
+# Ferramentas de desenvolvimento
+black>=23.7.0
+flake8>=6.0.0
+isort>=5.12.0
+pre-commit>=3.3.0

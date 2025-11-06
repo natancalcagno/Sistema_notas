@@ -3,9 +3,28 @@
 {% block title %}Lista de Contratos{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Contratos</h1>
-    <a href="{% url 'novo_contrato' %}" class="btn btn-success">Novo Contrato</a>
+    <a href="{% url 'core:novo_contrato' %}" class="btn btn-success">Novo Contrato</a>
+</div>
+
+<!-- Campo de Busca Discreto e Elegante -->
+<div class="elegant-search-wrapper mb-4">
+    <div class="elegant-search-container">
+        <div class="search-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <input type="text" 
+               class="elegant-search-input" 
+               id="globalSearch" 
+               placeholder="Buscar por contrato, empresa ou status..."
+               autocomplete="off">
+        <div class="search-clear" id="searchClear" style="display: none;">
+            <i class="fas fa-times"></i>
+        </div>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-suggestions" id="searchSuggestions"></div>
 </div>
 
 {% if contratos %}
@@ -30,6 +49,7 @@
                 <th>Valor</th>
                 <th>Data de Início</th>
                 <th>Data de Término</th>
+                <th>Status</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -42,8 +62,17 @@
                 <td>{{ contrato.data_inicio|date:"d/m/Y" }}</td>
                 <td>{{ contrato.data_termino|date:"d/m/Y" }}</td>
                 <td>
-                    <a href="{% url 'editar_contrato' contrato.pk %}" class="btn btn-sm btn-primary">Editar</a>
-                    <a href="{% url 'excluir_contrato' contrato.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+                    {% if contrato.status == 'Vencido' %}
+                        <span class="badge bg-danger">{{ contrato.status }}</span>
+                    {% elif contrato.status == 'Alerta de vencimento' %}
+                        <span class="badge bg-warning text-dark">{{ contrato.status }}</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ contrato.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'core:editar_contrato' contrato.pk %}" class="btn btn-sm btn-primary">Editar</a>
+                    <a href="{% url 'core:excluir_contrato' contrato.pk %}" class="btn btn-sm btn-danger">Excluir</a>
                 </td>
             </tr>
             {% endfor %}
@@ -67,4 +96,487 @@
 <p class="text-center">Nenhum contrato cadastrado.</p>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Campo de Busca Discreto e Elegante */
+.elegant-search-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.elegant-search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 50px;
+    padding: 8px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.elegant-search-container:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+}
+
+.elegant-search-container:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 20px rgba(102, 126, 234, 0.15);
+    transform: translateY(-1px);
+}
+
+.search-icon {
+    color: #6c757d;
+    margin-right: 12px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.elegant-search-container:focus-within .search-icon {
+    color: #667eea;
+}
+
+.elegant-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    color: #333;
+    padding: 8px 0;
+    font-weight: 400;
+}
+
+.elegant-search-input::placeholder {
+    color: #adb5bd;
+    font-weight: 400;
+}
+
+.search-clear {
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+}
+
+.search-clear:hover {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Resultados da Busca */
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    margin-top: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.search-result-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.search-result-item:hover {
+    background: #f8f9ff;
+    transform: translateX(3px);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.search-result-icon.contract {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.search-result-icon.company {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.search-result-icon.status {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.search-result-content {
+    flex: 1;
+}
+
+.search-result-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.search-result-subtitle {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* Sugestões */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 999;
+    display: none;
+    margin-top: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.search-suggestion-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.search-suggestion-item:hover {
+    background: #f8f9ff;
+    color: #667eea;
+}
+
+.search-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.search-suggestion-item i {
+    font-size: 12px;
+    width: 16px;
+    text-align: center;
+}
+
+/* Estado de carregamento */
+.search-loading {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.search-loading i {
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estado vazio */
+.search-empty {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .elegant-search-wrapper {
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .elegant-search-container {
+        padding: 6px 16px;
+    }
+    
+    .elegant-search-input {
+        font-size: 14px;
+    }
+    
+    .search-results,
+    .search-suggestions {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+    }
+}
+
+/* Melhorias na tabela */
+.table-responsive {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 20px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 15px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9ff;
+    transform: scale(1.005);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sistema de Busca Global Elegante
+document.addEventListener('DOMContentLoaded', function() {
+    const globalSearchInput = document.getElementById('globalSearch');
+    const searchClear = document.getElementById('searchClear');
+    const searchResults = document.getElementById('searchResults');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    
+    let searchTimer;
+    let currentQuery = '';
+    
+    // Configuração da busca
+    const SEARCH_DELAY = 300;
+    const MIN_SEARCH_LENGTH = 2;
+    
+    // Dados de exemplo para sugestões (em produção, viria da API)
+    const searchSuggestions_data = [
+        'Número do contrato',
+        'Nome da empresa',
+        'Status: Ativo',
+        'Status: Vencido',
+        'Status: Alerta de vencimento'
+    ];
+    
+    // Função para mostrar/ocultar botão limpar
+    function toggleClearButton() {
+        if (globalSearchInput.value.trim()) {
+            searchClear.style.display = 'block';
+        } else {
+            searchClear.style.display = 'none';
+        }
+    }
+    
+    // Função para limpar busca
+    function clearSearch() {
+        globalSearchInput.value = '';
+        searchResults.style.display = 'none';
+        searchSuggestions.style.display = 'none';
+        toggleClearButton();
+        
+        // Redirecionar para página sem filtros se houver
+        if (window.location.search) {
+            window.location.href = window.location.pathname;
+        }
+    }
+    
+    // Função para mostrar estado de carregamento
+    function showLoading() {
+        searchResults.innerHTML = '<div class="search-loading"><i class="fas fa-spinner"></i>Buscando...</div>';
+        searchResults.style.display = 'block';
+        searchSuggestions.style.display = 'none';
+    }
+    
+    // Função para mostrar estado vazio
+    function showEmpty() {
+        searchResults.innerHTML = '<div class="search-empty"><i class="fas fa-search"></i><br>Nenhum resultado encontrado</div>';
+        searchResults.style.display = 'block';
+    }
+    
+    // Função para detectar tipo de busca
+    function detectSearchType(query) {
+        query = query.toLowerCase().trim();
+        
+        // Detectar se é número de contrato (apenas números)
+        if (/^\d+$/.test(query)) {
+            return 'contract';
+        }
+        
+        // Detectar se é status
+        if (query.includes('ativo') || query.includes('vencido') || query.includes('alerta')) {
+            return 'status';
+        }
+        
+        // Por padrão, assumir que é empresa
+        return 'company';
+    }
+    
+    // Função para realizar busca
+    function performSearch(query) {
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        showLoading();
+        
+        const searchType = detectSearchType(query);
+        const params = new URLSearchParams();
+        
+        // Mapear tipo de busca para parâmetros da URL
+        switch (searchType) {
+            case 'contract':
+                params.append('numero', query);
+                break;
+            case 'status':
+                if (query.includes('ativo')) params.append('status', 'Ativo');
+                else if (query.includes('vencido')) params.append('status', 'Vencido');
+                else if (query.includes('alerta')) params.append('status', 'Alerta de vencimento');
+                break;
+            case 'company':
+            default:
+                params.append('empresa', query);
+                break;
+        }
+        
+        // Simular delay de busca e redirecionar
+        setTimeout(() => {
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.location.href = newUrl;
+        }, 500);
+    }
+    
+    // Função para mostrar sugestões
+    function showSuggestions(query) {
+        if (!query || query.length < 1) {
+            searchSuggestions.style.display = 'none';
+            return;
+        }
+        
+        const filteredSuggestions = searchSuggestions_data.filter(suggestion => 
+            suggestion.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        if (filteredSuggestions.length > 0) {
+            searchSuggestions.innerHTML = filteredSuggestions.map(suggestion => `
+                <div class="search-suggestion-item" data-suggestion="${suggestion}">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>${suggestion}</span>
+                </div>
+            `).join('');
+            
+            searchSuggestions.style.display = 'block';
+            searchResults.style.display = 'none';
+            
+            // Adicionar listeners para sugestões
+            searchSuggestions.querySelectorAll('.search-suggestion-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const suggestion = this.dataset.suggestion;
+                    globalSearchInput.value = suggestion;
+                    searchSuggestions.style.display = 'none';
+                    performSearch(suggestion);
+                });
+            });
+        } else {
+            searchSuggestions.style.display = 'none';
+        }
+    }
+    
+    // Event listeners
+    globalSearchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        currentQuery = query;
+        toggleClearButton();
+        
+        clearTimeout(searchTimer);
+        
+        if (query.length >= MIN_SEARCH_LENGTH) {
+            searchTimer = setTimeout(() => {
+                performSearch(query);
+            }, SEARCH_DELAY);
+        } else if (query.length > 0) {
+            showSuggestions(query);
+        } else {
+            searchResults.style.display = 'none';
+            searchSuggestions.style.display = 'none';
+        }
+    });
+    
+    globalSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimer);
+            performSearch(this.value.trim());
+        } else if (e.key === 'Escape') {
+            searchResults.style.display = 'none';
+            searchSuggestions.style.display = 'none';
+            this.blur();
+        }
+    });
+    
+    searchClear.addEventListener('click', clearSearch);
+    
+    // Fechar resultados ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.elegant-search-wrapper')) {
+            searchResults.style.display = 'none';
+            searchSuggestions.style.display = 'none';
+        }
+    });
+    
+    // Inicializar com valor atual se houver
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSearch = urlParams.get('numero') || urlParams.get('empresa') || urlParams.get('status') || '';
+    if (currentSearch) {
+        globalSearchInput.value = currentSearch;
+        toggleClearButton();
+    }
+    
+    // Focar no campo ao carregar a página (opcional)
+    setTimeout(() => {
+        if (!currentSearch) {
+            globalSearchInput.focus();
+        }
+    }, 100);
+});
+</script>
 {% endblock %}

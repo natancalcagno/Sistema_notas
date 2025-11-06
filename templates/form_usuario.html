@@ -86,9 +86,9 @@
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Atualizar{% else %}Cadastrar{% endif %}</button>
                             {% if is_update %}
-                            <a href="{% url 'alterar_senha' %}" class="btn btn-warning">Alterar Senha</a>
+                            <a href="{% url 'core:alterar_senha' %}" class="btn btn-warning">Alterar Senha</a>
                             {% endif %}
-                            <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">Voltar</a>
+                            <a href="{% url 'core:lista_usuarios' %}" class="btn btn-secondary">Voltar</a>
                         </div>
                     </form>
                 </div>

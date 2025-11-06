@@ -17,7 +17,7 @@ from .models import TokenRedefinicaoSenha
 class AlterarSenhaView(LoginRequiredMixin, FormView):
     template_name = 'alterar_senha.html'
     form_class = AlterarSenhaForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('core:home')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -32,7 +32,7 @@ class AlterarSenhaView(LoginRequiredMixin, FormView):
 class EsqueciSenhaView(FormView):
     template_name = 'esqueci_senha.html'
     form_class = EsqueciSenhaForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('core:login')
 
     def get_success_url(self):
         messages.success(
@@ -131,7 +131,7 @@ class EsqueciSenhaView(FormView):
 class RedefinirSenhaView(FormView):
     template_name = 'redefinir_senha.html'
     form_class = RedefinirSenhaForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('core:login')
 
     def form_invalid(self, form):
         print(f"Erros no formulário de redefinição: {form.errors}")

@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Lista de Usuários</h2>
-        <a href="{% url 'novo_usuario' %}" class="btn btn-primary">
+        <a href="{% url 'core:novo_usuario' %}" class="btn btn-primary">
             <i class="bi bi-person-plus"></i> Novo Usuário
         </a>
     </div>
@@ -37,7 +37,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'editar_usuario' usuario.pk %}" class="btn btn-sm btn-primary">
+                                <a href="{% url 'core:editar_usuario' usuario.pk %}" class="btn btn-sm btn-primary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
                             </td>

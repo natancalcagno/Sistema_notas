@@ -47,6 +47,47 @@ class ContratoForm(forms.ModelForm):
             'data_termino': 'Data de Término',
             'descricao': 'Descrição'
         }
+        help_texts = {
+            'numero': 'Número identificador do contrato',
+            'data_inicio': 'Selecione a data de início do contrato',
+            'data_termino': 'Selecione a data de término do contrato'
+        }
+
+    def clean(self):
+        """
+        Validação personalizada do formulário
+        """
+        cleaned_data = super().clean()
+        data_inicio = cleaned_data.get('data_inicio')
+        data_termino = cleaned_data.get('data_termino')
+        numero = cleaned_data.get('numero')
+        empresa = cleaned_data.get('empresa')
+        
+        # Validar se data de término é posterior à data de início
+        if data_inicio and data_termino:
+            if data_termino <= data_inicio:
+                raise forms.ValidationError(
+                    'A data de término deve ser posterior à data de início.'
+                )
+        
+        # Verificar duplicidade de número + empresa
+        if numero and empresa:
+            queryset = Contrato.objects.filter(
+                numero=numero,
+                empresa__iexact=empresa
+            )
+            
+            # Se estamos editando um contrato existente, excluir ele da verificação
+            if self.instance and self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError(
+                    f'Já existe um contrato com o número "{numero}" para a empresa "{empresa}". '
+                    'Por favor, verifique os dados e tente novamente.'
+                )
+        
+        return cleaned_data
 
 class NotaForm(forms.ModelForm):
     class Meta:
@@ -74,6 +115,33 @@ class NotaForm(forms.ModelForm):
             'valor': 'Valor',
             'observacoes': 'Observações'
         }
+    
+    def clean(self):
+        """
+        Validação personalizada do formulário
+        """
+        cleaned_data = super().clean()
+        numero = cleaned_data.get('numero')
+        empresa = cleaned_data.get('empresa')
+        
+        if numero and empresa:
+            # Verificar duplicidade de número + empresa
+            queryset = Nota.objects.filter(
+                numero=numero,
+                empresa__iexact=empresa
+            )
+            
+            # Se estamos editando uma nota existente, excluir ela da verificação
+            if self.instance and self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError(
+                    f'Já existe uma nota com o número "{numero}" para a empresa "{empresa}". '
+                    'Por favor, verifique os dados e tente novamente.'
+                )
+        
+        return cleaned_data
 
 class UsuarioForm(UserCreationForm):
     first_name = forms.CharField(

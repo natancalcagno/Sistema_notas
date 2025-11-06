@@ -3,73 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema de Notas e Contratos{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    {% block extra_head %}{% endblock %}
+    <title>{% block title %}Sistema de Notas{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+        }
+        
+        .main-content {
+            min-height: calc(100vh - 120px);
+            padding-top: 20px;
+        }
+        
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            margin-top: auto;
+        }
+        
+        .btn {
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 6px;
+        }
+        
+        .alert {
+            border-radius: 6px;
+        }
+        
+        /* Responsividade melhorada */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                text-align: center;
+            }
+            
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn-group .btn {
+                margin-bottom: 2px;
+            }
+        }
+        
+        /* Loading states */
+        .btn:disabled {
+            opacity: 0.6;
+        }
+        
+        /* Animações suaves */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Sistema de Notas</a>
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                <i class="fas fa-file-invoice"></i> Sistema de Notas
+            </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    {% if user.is_authenticated %}
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_contratos' %}">Contratos</a>
+                        <a class="nav-link" href="{% url 'core:home' %}">
+                            <i class="fas fa-tachometer-alt"></i> <span class="d-lg-inline d-none">Dashboard</span>
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_notas' %}">Notas</a>
+                        <a class="nav-link" href="{% url 'core:lista_contratos' %}">
+                            <i class="fas fa-file-contract"></i> <span class="d-lg-inline d-none">Contratos</span>
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'relatorios' %}">Relatórios</a>
+                        <a class="nav-link" href="{% url 'core:lista_notas' %}">
+                            <i class="fas fa-file-invoice-dollar"></i> <span class="d-lg-inline d-none">Notas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:relatorios' %}">
+                            <i class="fas fa-chart-bar"></i> <span class="d-lg-inline d-none">Relatórios</span>
+                        </a>
                     </li>
                     {% if user.tipo_usuario == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuários</a>
+                        <a class="nav-link" href="{% url 'core:lista_usuarios' %}">
+                            <i class="fas fa-users"></i> <span class="d-lg-inline d-none">Usuários</span>
+                        </a>
                     </li>
                     {% endif %}
-                    {% endif %}
                 </ul>
-                <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
+                
+                <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ user.username }}
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i> 
+                            <span class="d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                            {% if user.tipo_usuario == 'admin' %}
+                                <span class="badge bg-warning ms-1">Admin</span>
+                            {% endif %}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'alterar_senha' %}">Alterar Senha</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">{{ user.get_full_name|default:user.username }}</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'core:alterar_senha' %}">
+                                <i class="fas fa-key"></i> Alterar Senha
+                            </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="post" action="{% url 'logout' %}">
+                                <form method="post" action="{% url 'core:logout' %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item">Sair</button>
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt"></i> Sair
+                                    </button>
                                 </form>
                             </li>
                         </ul>
                     </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Entrar</a>
-                    </li>
-                    {% endif %}
                 </ul>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:login' %}">Entrar</a>
+                    </li>
+                </ul>
+                {% endif %}
             </div>
         </div>
     </nav>
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% block content %}{% endblock %}
-    </div>
+    <!-- Main Content -->
+    <main class="main-content flex-grow-1">
+        <div class="container-fluid">
+            <!-- Messages -->
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show fade-in" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
 
+    <!-- Footer -->
+    <footer class="footer mt-auto">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; {% now "Y" %} Sistema de Notas. Todos os direitos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">Versão 2.0 - Otimizado</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     {% block extra_scripts %}{% endblock %}
+    
+    <script>
+        // Global JavaScript utilities
+        $(document).ready(function() {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Confirm delete actions
+            $('.btn-danger[href*="delete"], .btn-danger[href*="excluir"]').on('click', function(e) {
+                if (!confirm('Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.')) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Loading state for forms
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                
+                submitBtn.prop('disabled', true)
+                         .html('<i class="fas fa-spinner fa-spin"></i> Processando...');
+                
+                // Fallback to restore button after 10 seconds
+                setTimeout(() => {
+                    submitBtn.prop('disabled', false).html(originalText);
+                }, 10000);
+            });
+            
+            // Smooth scrolling for anchor links
+            $('a[href^="#"]').on('click', function(event) {
+                var target = $(this.getAttribute('href'));
+                if( target.length ) {
+                    event.preventDefault();
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 100
+                    }, 1000);
+                }
+            });
+            
+            // Auto-focus first input in modals
+            $('.modal').on('shown.bs.modal', function () {
+                $(this).find('input:text, input:password, input:email, textarea').filter(':visible:first').focus();
+            });
+        });
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript Error:', e.error);
+        });
+        
+        // Service Worker registration (for future PWA features)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
 </body>
 </html>
