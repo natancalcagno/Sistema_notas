@@ -11,6 +11,9 @@ Este documento registra a causa raiz do erro no build, as correções aplicadas 
 - `build_files.sh`: exporta `DJANGO_SETTINGS_MODULE=Sistema_notas.settings_prod` antes de rodar `collectstatic`, evitando carregar o backend `sqlite3`.
 - `core/logging_config.py`: alterado `setup_logging(base_dir=None)` para aceitar `base_dir` como parâmetro e não depender do `django.conf.settings` durante o carregamento dos settings (evita erro de import circular). Há um fallback seguro para resolver `BASE_DIR` quando não fornecido.
 - `Sistema_notas/settings.py`: passa `BASE_DIR` explicitamente para `setup_logging`, via `LOGGING = setup_logging(base_dir=str(BASE_DIR))`.
+- `Sistema_notas/wsgi.py`: adicionado fallback de inicialização com tratamento de erro. Se a app falhar ao iniciar, retorna 500 em JSON com dicas e log detalhado no stderr, evitando `FUNCTION_INVOCATION_FAILED` opaco.
+- `Sistema_notas/settings_prod.py`: valida a presença do driver PostgreSQL (`psycopg` ou `psycopg2`). Se ausente e `ENGINE` for PostgreSQL, alterna para backend `dummy` para evitar crash em serverless, emitindo um aviso de startup.
+- `vercel.json`: runtime atualizado para `python3.12` e rota principal corrigida para `"dest": "Sistema_notas/wsgi.py"`.
 
 ## Impacto
 - O build do Vercel deixa de importar `sqlite3` durante `collectstatic`.
@@ -22,6 +25,7 @@ Este documento registra a causa raiz do erro no build, as correções aplicadas 
 - `ALLOWED_HOSTS=.vercel.app,localhost` (ou configure internamente em `settings_prod`).
 - `DATABASE_URL` (PostgreSQL recomendado; ex.: `postgres://user:pass@host:5432/db`).
 - `DEBUG=false` em produção.
+- Opcional: `VERCEL=1` é definido automaticamente pelo ambiente Vercel; usado para configurar logging console-only.
 
 ## Fluxo de build no Vercel
 1. Instala dependências Python: `pip install -r requirements.txt`.
@@ -29,6 +33,11 @@ Este documento registra a causa raiz do erro no build, as correções aplicadas 
 3. Executa `python manage.py collectstatic --noinput --clear` (coleta estáticos em `staticfiles/`).
 4. Publica os estáticos via `@vercel/static-build` (rotas direcionam `/static/(.*)` para os artefatos coletados).
 5. Roda o WSGI via `@vercel/python` com entrypoint `Sistema_notas/wsgi.py` e variável `app`.
+
+## Tratamento de erros e validações
+- WSGI fallback: captura exceções na inicialização, imprime stacktrace nos logs da função e retorna uma resposta 500 informativa em JSON.
+- Driver de Postgres: valida `psycopg`/`psycopg2` na importação. Se ausente, ativa backend `dummy` (apenas para evitar crash), com aviso nos logs. Em produção, forneça `DATABASE_URL` e garanta a instalação do driver para funcionamento pleno do banco.
+- Logging serverless-safe: em Vercel, não escreve em disco; apenas console.
 
 ## Testes locais
 - Coleta de estáticos padrão (sqlite local):
@@ -41,6 +50,12 @@ Este documento registra a causa raiz do erro no build, as correções aplicadas 
   $env:DJANGO_SETTINGS_MODULE="Sistema_notas.settings_prod"; python manage.py collectstatic --noinput --clear
   ```
   Observação: em ambientes sem `psycopg2-binary` para a versão de Python local, pode haver erro de import do driver do PostgreSQL. No Vercel (Python 3.12) o pacote precompilado é suportado.
+
+- Simular inicialização da função com fallback:
+  ```
+  $env:DJANGO_SETTINGS_MODULE="Sistema_notas.settings_prod"; $env:VERCEL="1"; python -c "import Sistema_notas.wsgi as w; print(type(w.app))"
+  ```
+  Se houver erro de inicialização, o fallback expõe `w.app` como função WSGI que retorna 500 com JSON.
 
 ## Referência rápida
 - Arquivos alterados:

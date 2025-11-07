@@ -38,6 +38,29 @@ else:
         }
     }
 
+# Validação do driver de PostgreSQL para evitar falhas de import em ambiente serverless
+_driver_ok = False
+try:
+    import psycopg  # psycopg 3
+    _driver_ok = True
+except Exception:
+    try:
+        import psycopg2  # psycopg2
+        _driver_ok = True
+    except Exception:
+        _driver_ok = False
+
+# Se o driver não estiver disponível e o ENGINE for PostgreSQL, evitar crash com backend dummy
+if not _driver_ok:
+    try:
+        engine = DATABASES['default'].get('ENGINE')
+    except Exception:
+        engine = None
+    if engine == 'django.db.backends.postgresql':
+        import sys
+        print('[startup-warning] PostgreSQL driver ausente; ativando backend dummy para evitar crash.', file=sys.stderr)
+        DATABASES['default']['ENGINE'] = 'django.db.backends.dummy'
+
 # Configurações de email para produção
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
