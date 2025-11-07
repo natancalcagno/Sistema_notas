@@ -5,15 +5,9 @@
       "src": "Sistema_notas/wsgi.py",
       "use": "@vercel/python",
       "config": { "maxLambdaSize": "50mb", "runtime": "python3.12" }
-    },
-    {
-      "src": "build_files.sh",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "staticfiles", "buildCommand": "bash build_files.sh" }
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/$1" },
     { "src": "/(.*)", "dest": "Sistema_notas/wsgi.py" }
   ]
 }
