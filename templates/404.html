@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Página não encontrada (404){% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <h1 class="display-5 mb-3">Ops! Página não encontrada.</h1>
+      <p class="lead mb-4">A URL acessada não existe ou foi movida. Verifique o endereço ou volte para a página inicial.</p>
+      <a href="{% url 'core:home' %}" class="btn btn-primary">
+        <i class="bi bi-house"></i> Ir para o Dashboard
+      </a>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Dicas</h5>
+          <ul class="mb-0">
+            <li>Se você digitou a URL manualmente, confira se não há erros de digitação.</li>
+            <li>Use o menu superior para navegar para a área desejada.</li>
+            <li>Se o problema persistir, entre em contato com o suporte.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+{% endblock %}

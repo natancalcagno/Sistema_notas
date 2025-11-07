@@ -22,3 +22,6 @@ if path not in sys.path:
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Sistema_notas.settings_prod')
 
 application = get_wsgi_application()
+
+# Expor a variável pública `app` para o runtime do Vercel
+app = application
