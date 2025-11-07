@@ -230,12 +230,21 @@ class SecurityLogger:
         )
 
 
-def setup_logging():
+def setup_logging(base_dir=None):
     """
     Configurar sistema de logging
     """
     # Criar diretório de logs se não existir
-    log_dir = os.path.join(settings.BASE_DIR, 'logs')
+    # Determinar BASE_DIR sem depender do ciclo de import do Django
+    if base_dir is None:
+        try:
+            # Quando settings já estiverem prontos
+            base_dir = settings.BASE_DIR
+        except Exception:
+            # Fallback para raiz do projeto (um nível acima de 'core')
+            from pathlib import Path
+            base_dir = str(Path(__file__).resolve().parents[1])
+    log_dir = os.path.join(base_dir, 'logs')
     os.makedirs(log_dir, exist_ok=True)
     
     # Configurar handlers

@@ -208,7 +208,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuração de Logging Estruturado
 from core.logging_config import setup_logging
-LOGGING = setup_logging()
+LOGGING = setup_logging(base_dir=str(BASE_DIR))
 
 # Criar diretório de logs se não existir
 import os
