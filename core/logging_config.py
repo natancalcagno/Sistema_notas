@@ -244,10 +244,70 @@ def setup_logging(base_dir=None):
             # Fallback para raiz do projeto (um nível acima de 'core')
             from pathlib import Path
             base_dir = str(Path(__file__).resolve().parents[1])
+    # Detectar ambiente Vercel (serverless, filesystem read-only)
+    is_vercel = os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV') is not None
+
+    # Em Vercel, evitar escrita em disco; usar apenas console
+    if is_vercel:
+        handlers = {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+                'level': 'INFO'
+            }
+        }
+        loggers = {
+            'django': { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'core':   { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'audit':  { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'performance': { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'security': { 'handlers': ['console'], 'level': 'WARNING', 'propagate': False },
+        }
+        return {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'json': { '()': JSONFormatter },
+                'console': { 'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s' }
+            },
+            'handlers': handlers,
+            'loggers': loggers,
+            'root': { 'level': 'INFO', 'handlers': ['console'] }
+        }
+
+    # Ambiente local/servidor tradicional: preparar diretório de logs
     log_dir = os.path.join(base_dir, 'logs')
-    os.makedirs(log_dir, exist_ok=True)
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except Exception:
+        # Se não conseguir criar, rebaixa para console-only
+        handlers = {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+                'level': 'INFO'
+            }
+        }
+        loggers = {
+            'django': { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'core':   { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'audit':  { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'performance': { 'handlers': ['console'], 'level': 'INFO', 'propagate': False },
+            'security': { 'handlers': ['console'], 'level': 'WARNING', 'propagate': False },
+        }
+        return {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'json': { '()': JSONFormatter },
+                'console': { 'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s' }
+            },
+            'handlers': handlers,
+            'loggers': loggers,
+            'root': { 'level': 'INFO', 'handlers': ['console'] }
+        }
     
-    # Configurar handlers
+    # Configurar handlers (com arquivo) para ambientes com disco gravável
     handlers = {
         'console': {
             'class': 'logging.StreamHandler',
