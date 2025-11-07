@@ -169,32 +169,55 @@ class DatabaseQueryLogMiddleware(MiddlewareMixin):
     Middleware para logging de queries do banco de dados
     """
     def process_request(self, request):
-        from django.db import connection
-        request.queries_before = len(connection.queries)
+        try:
+            from django.db import connection
+            engine = getattr(getattr(connection, 'settings_dict', {}), 'get', lambda k, d=None: d)('ENGINE', '') if hasattr(connection, 'settings_dict') else ''
+            if engine == 'django.db.backends.dummy':
+                request.queries_before = 0
+                return
+            try:
+                request.queries_before = len(getattr(connection, 'queries', []))
+            except Exception:
+                request.queries_before = 0
+        except Exception:
+            # Em ambientes sem banco ou com falha de driver, não bloquear a requisição
+            request.queries_before = 0
     
     def process_response(self, request, response):
-        from django.db import connection
+        try:
+            from django.db import connection
+            engine = getattr(getattr(connection, 'settings_dict', {}), 'get', lambda k, d=None: d)('ENGINE', '') if hasattr(connection, 'settings_dict') else ''
+        except Exception:
+            engine = ''
+            connection = None
         
-        if hasattr(request, 'queries_before'):
-            queries_count = len(connection.queries) - request.queries_before
-            
-            # Log se houver muitas queries (possível problema N+1)
-            if queries_count > 10:
-                user_id = request.user.id if request.user.is_authenticated else None
+        try:
+            if hasattr(request, 'queries_before'):
+                if engine == 'django.db.backends.dummy' or connection is None:
+                    queries_count = 0
+                else:
+                    try:
+                        queries_count = len(getattr(connection, 'queries', [])) - int(getattr(request, 'queries_before', 0))
+                    except Exception:
+                        queries_count = 0
                 
-                performance_logger.logger.warning(
-                    f"High number of database queries: {queries_count} for {request.path}",
-                    extra={
-                        'action': 'high_query_count',
-                        'query_count': queries_count,
-                        'path': request.path,
-                        'user_id': user_id,
-                        'request_id': getattr(request, 'request_id', None)
-                    }
-                )
-            
-            # Adicionar header com número de queries
-            response['X-DB-Queries'] = str(queries_count)
+                if queries_count > 10:
+                    user_id = request.user.id if getattr(request, 'user', None) and request.user.is_authenticated else None
+                    performance_logger.logger.warning(
+                        f"High number of database queries: {queries_count} for {request.path}",
+                        extra={
+                            'action': 'high_query_count',
+                            'query_count': queries_count,
+                            'path': request.path,
+                            'user_id': user_id,
+                            'request_id': getattr(request, 'request_id', None)
+                        }
+                    )
+                
+                response['X-DB-Queries'] = str(queries_count)
+        except Exception:
+            # Nunca quebrar a resposta por causa de contagem de queries
+            pass
         
         return response
 
