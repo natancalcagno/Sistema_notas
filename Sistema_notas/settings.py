@@ -210,10 +210,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 from core.logging_config import setup_logging
 LOGGING = setup_logging(base_dir=str(BASE_DIR))
 
-# Criar diretório de logs se não existir
+# Evitar crash ao tentar criar diretório de logs em ambientes read-only (ex.: Vercel)
 import os
 log_dir = os.path.join(BASE_DIR, 'logs')
-os.makedirs(log_dir, exist_ok=True)
+_is_vercel = os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV') is not None
+if not _is_vercel:
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except Exception:
+        # Em caso de erro, confiar no setup_logging que já cai para console-only
+        pass
 
 # Configurações do Django REST Framework
 REST_FRAMEWORK = {
