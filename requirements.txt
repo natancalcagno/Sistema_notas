@@ -14,7 +14,8 @@ django-filter>=23.2
 django-cors-headers>=4.2.0
 
 # Utilitários para documentos e relatórios
-docx==0.2.4             # Para geração de documentos Word
+# O pacote correto para "from docx import Document" é python-docx
+python-docx>=0.8.11      # Para geração de documentos Word
 Pillow>=10.0.0          # Para manipulação de imagens
 openpyxl>=3.1.0         # Para exportação Excel
 reportlab>=4.0.0        # Para geração de PDF

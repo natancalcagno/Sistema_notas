@@ -13,12 +13,21 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
-from docx import Document
-from docx.shared import Pt, Cm, Inches
 from django.conf import settings
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
-from docx.shared import RGBColor
+# Importação resiliente de python-docx para evitar crash em ambientes sem o pacote
+try:
+    from docx import Document
+    from docx.shared import Pt, Cm, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
+    DOCX_AVAILABLE = True
+except Exception:
+    Document = None
+    Pt = Cm = Inches = RGBColor = None
+    WD_ALIGN_PARAGRAPH = None
+    def qn(x):
+        return x
+    DOCX_AVAILABLE = False
 import os
 import io
 from .models import Contrato, Nota, Usuario, TokenRedefinicaoSenha
@@ -449,6 +458,10 @@ class RelatoriosView(LoginRequiredMixin, TemplateView):
 
 class GerarProtocoloView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
+        # Falha controlada caso python-docx não esteja disponível (como em Vercel)
+        if not DOCX_AVAILABLE:
+            messages.error(request, 'Geração de protocolo indisponível: dependência python-docx ausente no ambiente.')
+            return redirect('core:relatorios')
         notas_ids = request.POST.getlist('notas_selecionadas')
         notas = Nota.objects.filter(id__in=notas_ids).order_by('data_entrada')
         despacho_numero = request.POST.get('despacho_numero', '').strip()

@@ -61,6 +61,15 @@ if not _driver_ok:
         print('[startup-warning] PostgreSQL driver ausente; ativando backend dummy para evitar crash.', file=sys.stderr)
         DATABASES['default']['ENGINE'] = 'django.db.backends.dummy'
 
+# Em ambientes sem banco (ENGINE dummy), evitar escrita de sessão no DB
+try:
+    _engine = DATABASES['default'].get('ENGINE')
+except Exception:
+    _engine = None
+if _engine == 'django.db.backends.dummy':
+    # Usa sessões baseadas em cookies assinados (sem persistência no banco)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
 # Configurações de email para produção
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
