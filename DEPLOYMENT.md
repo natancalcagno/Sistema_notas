@@ -64,3 +64,32 @@ Este documento registra a causa raiz do erro no build, as correções aplicadas 
   - `Sistema_notas/settings.py`
 - Sintoma original: `ModuleNotFoundError: No module named '_sqlite3'` durante `collectstatic` no Vercel.
 - Solução: usar `settings_prod` no build e eliminar dependência circular em logging.
+
+## Erros 500 pós-deploy e correção
+
+### Sintomas observados
+- Status 500 em `/`, `/favicon.ico` e `/favicon.png` nas funções do Vercel.
+- Logs apontando falha no pipeline de resposta do runtime serverless.
+- Build com aviso: `Skipping cache upload because no files were prepared`.
+
+### Causa raiz
+1) `CompressedManifestStaticFilesStorage` sem manifesto: ao renderizar templates com `{% static %}` ou ao servir assets, o storage exige `staticfiles.json`. Ausente, ocorre exceção e retorna 500.
+2) `DatabaseQueryLogMiddleware` lendo `connection.queries` em ambiente sem banco configurado pode causar erros em serverless.
+
+### Correções realizadas
+- `Sistema_notas/settings_prod.py`:
+  - Fallback automático para `CompressedStaticFilesStorage` quando `staticfiles.json` não existe.
+  - Remoção de `core.middleware.DatabaseQueryLogMiddleware` do stack de produção para evitar dependência de banco.
+- `vercel.json`: rotas unificadas para `Sistema_notas/wsgi.py` e estáticos servidos pelo WhiteNoise.
+
+### Validação sugerida
+1) Local (Windows PowerShell):
+   - `setx DJANGO_SETTINGS_MODULE Sistema_notas.settings_prod` ou `$env:DJANGO_SETTINGS_MODULE="Sistema_notas.settings_prod"` temporário.
+   - Garantir `DEBUG=false` e ausência de `staticfiles.json` para simular o fallback.
+   - Acessar `/` e assets (`/favicon.ico`, `/static/...`) sem 500.
+2) Produção (Vercel):
+   - Verificar variáveis: `DJANGO_SETTINGS_MODULE`, `SECRET_KEY`, `ALLOWED_HOSTS`, `DEBUG=false`, `DATABASE_URL`.
+   - Conferir Function Logs: ausência de exceções ao servir estáticos e na home.
+
+### Observações
+- Se desejar usar manifesto, execute `python manage.py collectstatic` e garanta que os artefatos estejam disponíveis no deploy.

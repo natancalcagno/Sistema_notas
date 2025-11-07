@@ -83,13 +83,21 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # Middleware adicional para produção
+# Remove middlewares sensíveis a banco em ambientes serverless
+_BASE_MIDDLEWARE = [mw for mw in MIDDLEWARE if mw != 'core.middleware.DatabaseQueryLogMiddleware']
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir arquivos estáticos
-] + MIDDLEWARE
+] + _BASE_MIDDLEWARE
 
 # Configuração do WhiteNoise para arquivos estáticos
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+Manifest_path = os.path.join(STATIC_ROOT, 'staticfiles.json')
+if os.path.exists(Manifest_path):
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    # Fallback seguro quando o manifesto não foi gerado por collectstatic
+    # Evita erro "Missing staticfiles manifest entry" e mantém compatibilidade
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Configuração de CORS para Render
 CORS_ALLOW_ALL_ORIGINS = False
