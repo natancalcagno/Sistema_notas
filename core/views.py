@@ -43,9 +43,26 @@ class LoginView(LoginView):
     template_name = 'login.html'
     fields = '__all__'
     redirect_authenticated_user = True
-
+    
     def get_success_url(self):
         return reverse_lazy('core:home')
+
+    def post(self, request, *args, **kwargs):
+        """
+        Em ambiente sem banco (ENGINE dummy), evita 500 ao tentar autenticar.
+        Mostra uma mensagem amigável e mantém na página de login.
+        """
+        try:
+            from django.db import connections
+            engine = connections['default'].settings_dict.get('ENGINE', '')
+        except Exception:
+            engine = ''
+
+        if engine == 'django.db.backends.dummy':
+            messages.error(request, 'Autenticação indisponível: banco de dados não configurado. Defina DATABASE_URL ou variáveis DB_* no ambiente de produção.')
+            return self.get(request, *args, **kwargs)
+
+        return super().post(request, *args, **kwargs)
 
 # View da Home
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -55,6 +72,14 @@ class HomeView(LoginRequiredMixin, TemplateView):
         # Verificar se é uma requisição AJAX
         if request.GET.get('ajax'):
             return self.get_ajax_response(request)
+        # Evitar consultas ao banco em ambiente dummy
+        try:
+            from django.db import connections
+            engine = connections['default'].settings_dict.get('ENGINE', '')
+        except Exception:
+            engine = ''
+        if engine == 'django.db.backends.dummy':
+            messages.warning(request, 'Dashboard em modo leitura: banco de dados não configurado. Algumas métricas não serão exibidas.')
         return super().get(request, *args, **kwargs)
     
     def get_ajax_response(self, request):
@@ -110,6 +135,19 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # Evitar consultas ao banco em ambiente dummy
+        try:
+            from django.db import connections
+            engine = connections['default'].settings_dict.get('ENGINE', '')
+        except Exception:
+            engine = ''
+        if engine == 'django.db.backends.dummy':
+            context['estatisticas'] = {}
+            context['graficos'] = {}
+            context['notas'] = []
+            context['empresas'] = []
+            return context
+
         # Usar service para obter estatísticas
         dashboard_service = DashboardService(self.request.user)
         
