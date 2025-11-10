@@ -11,7 +11,14 @@ if os.path.isfile(env_file):
     load_dotenv(env_file)
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Em ambiente serverless, evitar crash se variável ausente, gerando chave efêmera.
+import secrets
 SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    # Chave efêmera: válida apenas para o ciclo da função. Sessões podem se invalidar entre invocações.
+    SECRET_KEY = secrets.token_urlsafe(64)
+    import sys
+    print('[startup-warning] SECRET_KEY não definido; usando chave efêmera para evitar 500.', file=sys.stderr)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
