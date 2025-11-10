@@ -20,7 +20,7 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Configuração de banco de dados para produção
-# Usar DATABASE_URL do Render se disponível
+# Usa DATABASE_URL se disponível. Caso contrário, valida variáveis e aplica fallback seguro.
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -37,6 +37,13 @@ else:
             'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
+    # Se variáveis essenciais estiverem ausentes em ambiente serverless, evitar conexões quebradas
+    _required = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT']
+    _missing = [k for k in _required if not os.environ.get(k)]
+    if _missing:
+        import sys
+        print(f"[startup-warning] Variáveis de banco ausentes ({', '.join(_missing)}); ativando backend dummy.", file=sys.stderr)
+        DATABASES['default']['ENGINE'] = 'django.db.backends.dummy'
 
 # Validação do driver de PostgreSQL para evitar falhas de import em ambiente serverless
 _driver_ok = False
