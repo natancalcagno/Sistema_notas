@@ -1,6 +1,6 @@
 # Django e dependências principais
 Django==5.2.6
-psycopg2-binary==2.9.9  # Para PostgreSQL
+psycopg>=3.1  # Driver PostgreSQL (evita build com pg_config)
 python-dotenv==1.0.0    # Para carregar variáveis de ambiente
 whitenoise==6.6.0       # Para servir arquivos estáticos
 gunicorn==21.2.0        # Servidor WSGI para produção
