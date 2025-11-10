@@ -108,6 +108,10 @@ else:
     # Evita erro "Missing staticfiles manifest entry" e mantém compatibilidade
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# Configuração de CORS para Render
+# Configuração de CORS
+# Filtra valores vazios e espaços para evitar erros de configuração
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    if origin and origin.strip()
+]
