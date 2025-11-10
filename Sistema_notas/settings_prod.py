@@ -84,6 +84,11 @@ if _engine == 'django.db.backends.dummy':
     # Usa sessões baseadas em cookies assinados (sem persistência no banco)
     SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
+# Em Vercel, preferir sessões por cookie para evitar acessos ao banco entre invocações
+_is_vercel = os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV') is not None
+if _is_vercel:
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
 # Configurações de email para produção
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST')

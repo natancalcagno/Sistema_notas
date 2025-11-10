@@ -94,11 +94,12 @@ class AuditLogMiddleware:
         request.request_id = str(uuid.uuid4())
         
         # Log da requisição
-        if request.user.is_authenticated:
+        user_id = self.get_session_user_id(request)
+        if user_id:
             self.logger.info(
-                f"User {request.user.id} accessed {request.path}",
+                f"User {user_id} accessed {request.path}",
                 extra={
-                    'user_id': request.user.id,
+                    'user_id': user_id,
                     'path': request.path,
                     'method': request.method,
                     'ip_address': self.get_client_ip(request),
@@ -117,6 +118,12 @@ class AuditLogMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
+    def get_session_user_id(self, request):
+        try:
+            return request.session.get('_auth_user_id')
+        except Exception:
+            return None
+
 
 class PerformanceMiddleware(MiddlewareMixin):
     """
@@ -132,7 +139,7 @@ class PerformanceMiddleware(MiddlewareMixin):
             
             # Log apenas se a execução demorar mais que 1 segundo ou for uma view importante
             if execution_time > 1.0 or self.is_important_view(request):
-                user_id = request.user.id if request.user.is_authenticated else None
+                user_id = self.get_session_user_id(request)
                 
                 performance_logger.log_view_time(
                     view_name=self.get_view_name(request),
@@ -162,6 +169,12 @@ class PerformanceMiddleware(MiddlewareMixin):
             return request.resolver_match.view_name if request.resolver_match else request.path
         except:
             return request.path
+
+    def get_session_user_id(self, request):
+        try:
+            return request.session.get('_auth_user_id')
+        except Exception:
+            return None
 
 
 class DatabaseQueryLogMiddleware(MiddlewareMixin):
@@ -202,7 +215,10 @@ class DatabaseQueryLogMiddleware(MiddlewareMixin):
                         queries_count = 0
                 
                 if queries_count > 10:
-                    user_id = request.user.id if getattr(request, 'user', None) and request.user.is_authenticated else None
+                    try:
+                        user_id = request.session.get('_auth_user_id')
+                    except Exception:
+                        user_id = None
                     performance_logger.logger.warning(
                         f"High number of database queries: {queries_count} for {request.path}",
                         extra={
@@ -279,14 +295,15 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         # Log detalhado apenas para usuários autenticados ou requisições importantes
-        if request.user.is_authenticated or self.is_important_request(request):
+        user_id = self.get_session_user_id(request)
+        if user_id or self.is_important_request(request):
             audit_logger.logger.info(
                 f"Request: {request.method} {request.path}",
                 extra={
                     'action': 'request_received',
                     'method': request.method,
                     'path': request.path,
-                    'user_id': request.user.id if request.user.is_authenticated else None,
+                    'user_id': user_id,
                     'ip_address': self.get_client_ip(request),
                     'user_agent': request.META.get('HTTP_USER_AGENT', ''),
                     'request_id': getattr(request, 'request_id', str(uuid.uuid4()))
@@ -295,7 +312,8 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         # Log da resposta para requisições importantes
-        if hasattr(request, 'user') and (request.user.is_authenticated or self.is_important_request(request)):
+        user_id = self.get_session_user_id(request)
+        if hasattr(request, 'user') and (user_id or self.is_important_request(request)):
             audit_logger.logger.info(
                 f"Response: {response.status_code} for {request.method} {request.path}",
                 extra={
@@ -303,7 +321,7 @@ class RequestLoggingMiddleware(MiddlewareMixin):
                     'status_code': response.status_code,
                     'method': request.method,
                     'path': request.path,
-                    'user_id': request.user.id if request.user.is_authenticated else None,
+                    'user_id': user_id,
                     'request_id': getattr(request, 'request_id', None)
                 }
             )
@@ -323,3 +341,9 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+    def get_session_user_id(self, request):
+        try:
+            return request.session.get('_auth_user_id')
+        except Exception:
+            return None
